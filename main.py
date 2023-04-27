@@ -68,6 +68,8 @@ def analyze_text(path: str):
 
     return amount_words, bag_words
 
+def compare_texts(inverted_index: InvertedIndex, text: list) -> float:
+    pass
 
 def main():
 
@@ -103,7 +105,7 @@ def main():
                 w.append(word.lower())
 
 
-    print(w)
+
 
 
 
