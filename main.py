@@ -1,7 +1,33 @@
 # Explicit Semantic Analysis Test
+from math import sqrt
 import os
+from preprocesing import *
+from inverted_index import *
 
 def compare_texts(inverted_index: InvertedIndex, text: list) -> float:
+    pass
+
+def multiply_appearances(bag_of_words: InvertedIndex):
+    all_words_dict = bag_of_words.index
+    sum_of_all_multiplications = 0
+    for i in bag_of_words.key:
+        if 1>= len(all_words_dict[i]) : # this means that if the word appears in both texts, we'll do:
+            sum_of_all_multiplications += all_words_dict[i][0].frequency * all_words_dict[i][1].frequency
+    return sum_of_all_multiplications
+
+def cosine_similarity(first_text_path:str, second_text_path: str) -> float:
+    first_amount, first_bag = preprocesing.analyze_text(first_text_path)
+    second_amount, second_bag = preprocesing.analyze_text(second_text_path)
+    all_words_index = InvertedIndex()
+    all_words_index.add(first_bag, 1, first_amount)
+    all_words_index.add(second_bag, 2, second_amount)
+    # at this point, all words are stored in all_words_index.index
+
+    # using this all_words_index, we get the summation of the frequency of the words that exist in both texts
+    sum_of_words_present_in_both_texts = multiply_appearances(all_words_index)
+    first_text_root_of_words = sqrt(first_bag)
+    # una para cada texto
+    # diccionario para cada una, con estos diccionarios hacemos el cosine similarity
     pass
 
 def main():
