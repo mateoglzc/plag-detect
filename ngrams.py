@@ -1,8 +1,8 @@
 import re
 
-from nltk.util import ngrams, pad_sequence, everygrams
-from nltk.tokenize import word_tokenize
-from nltk.lm import MLE, WittenBellInterpolated
+# from nltk.util import ngrams, pad_sequence, everygrams
+# from nltk.tokenize import word_tokenize
+# from nltk.lm import MLE, WittenBellInterpolated
 
 # import numpy as np
 
@@ -15,6 +15,21 @@ from nltk.lm import MLE, WittenBellInterpolated
 # 4.- Fit the model
 
 def pad_data(full_text: str) -> list:
+    # Separate text into sentences
+    sentences = full_text.split(". ")
+    # Remove dot at the end of the sentences (if needed)
+    sentences = [s.strip(".") for s in sentences]
+    sentences = [s.strip("./n") for s in sentences]
+    pad_list = []
+    # print(sentences)
+    # This for loop will add an <s> before the start of each sentence
+    # and a <\s> after each sentence
+    for i in sentences:
+        pad_list.append("<s>")
+        splitted_sentence = i.split()
+        pad_list.extend(splitted_sentence)
+        pad_list.append("<\s>")
+    
     """
     Pad the training data by sentences.
     Ex.
@@ -42,6 +57,7 @@ def pad_data(full_text: str) -> list:
         pad_list.append("<\s>")
     
     return pad_list
+    print(pad_list)
 
 def markov_assumption(ngrams_set: list, ngram: int):
     pass 
@@ -76,21 +92,21 @@ if __name__ == "__main__":
 
     # # Remove punctuation
      
-    train_text = re.sub(r"\[.*\]|\{.*\}", "", train_text)
-    train_text = re.sub(r'[^\w\s]', "", train_text)
+    # train_text = re.sub(r"\[.*\]|\{.*\}", "", train_text)
+    # train_text = re.sub(r'[^\w\s]', "", train_text)
 
     # N-Gram number
     N = 1
 
-    # Pad Text (Basically just insert '<s>' in the beginning)
-    training_data = list(pad_sequence(word_tokenize(train_text), N, 
-                                  pad_left=True, 
-                                  left_pad_symbol="<s>"))
+    # # Pad Text (Basically just insert '<s>' in the beginning)
+    # training_data = list(pad_sequence(word_tokenize(train_text), N, 
+    #                               pad_left=True, 
+    #                               left_pad_symbol="<s>"))
 
     # print(f"Training data: {training_data}\n")
 
-    # Generate ngrams
-    ngrams = list(everygrams(training_data, max_len=N))
+    # # Generate ngrams
+    # ngrams = list(everygrams(training_data, max_len=N))
 
     print(f"Ngram-ed data: {ngrams}")
 
