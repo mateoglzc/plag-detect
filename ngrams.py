@@ -57,7 +57,7 @@ def pad_data(full_text: str) -> list:
         pad_list.append("<\s>")
     
     return pad_list
-    print(pad_list)
+    
 
 def markov_assumption(ngrams_set: list, ngram: int):
     pass 
