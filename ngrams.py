@@ -1,4 +1,5 @@
 import re
+import string
 
 # from nltk.util import ngrams, pad_sequence, everygrams
 # from nltk.tokenize import word_tokenize
@@ -15,6 +16,7 @@ import re
 # 4.- Fit the model
 
 def pad_data(full_text: str) -> list:
+
     # Separate text into sentences
     sentences = full_text.split(". ")
     # Remove dot at the end of the sentences (if needed)
@@ -59,6 +61,22 @@ def pad_data(full_text: str) -> list:
     return pad_list
     print(pad_list)
 
+def group_creation(pad_list: list):
+    grouped_list = []
+    for i in range(len(pad_list)-1):
+        # if(i == 0):
+        #     pair = (pad_list[0],)
+        #     grouped_list.append(pair)
+        pair = (pad_list[i],)
+        grouped_list.append(pair)
+        pair = (pad_list[i], pad_list[i+1])
+        grouped_list.append(pair)
+    pair = (pad_list[-1],)
+    grouped_list.append(pair)
+    print(grouped_list)
+    
+    # return grouped_list
+
 def markov_assumption(ngrams_set: list, ngram: int):
     pass 
 
@@ -88,7 +106,8 @@ if __name__ == "__main__":
     
     pad_d = pad_data(train_text)
 
-    print(f"Our padded data: {pad_d}")
+    # print(f"Our padded data: {pad_d}")
+    group_creation(pad_d)
 
     # # Remove punctuation
      
@@ -96,7 +115,7 @@ if __name__ == "__main__":
     # train_text = re.sub(r'[^\w\s]', "", train_text)
 
     # N-Gram number
-    N = 1
+    # N = 1
 
     # # Pad Text (Basically just insert '<s>' in the beginning)
     # training_data = list(pad_sequence(word_tokenize(train_text), N, 
@@ -108,7 +127,7 @@ if __name__ == "__main__":
     # # Generate ngrams
     # ngrams = list(everygrams(training_data, max_len=N))
 
-    print(f"Ngram-ed data: {ngrams}")
+    # print(f"Ngram-ed data: {ngrams}")
 
     # # Build ngram language models
     # model = WittenBellInterpolated(N) # Quien sabe que tipo de modelo es este?
