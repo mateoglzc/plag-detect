@@ -1,4 +1,5 @@
 import re
+import math
 
 from nltk.util import ngrams, pad_sequence, everygrams
 from nltk.tokenize import word_tokenize
@@ -13,6 +14,143 @@ from nltk.lm import MLE, WittenBellInterpolated
 # 2.- Tokenize training data. "this is a sentence" -> ["this", "is", "a", "sentence"]
 # 3.- Generate n-grams from the training data
 # 4.- Fit the model
+class NgramCounter():
+    
+    def __init__(self, ngrams: list) -> None:
+        self.ngrams = ngrams
+        self.count()
+
+    def count(self) -> None:
+
+        self.tokens = 0
+        self.token_appearance = {}
+        self.start_appearances = {}
+
+        for ngram in self.ngrams:
+
+            # Count normal ngrams
+            self.token_appearance[ngram] = self.token_appearance.get(ngram, 0) + 1
+
+            # Check if ngram is in start of sentence
+            if ngram[0] == "<s>":
+                self.start_appearances[ngram] = self.start_appearances.get(ngram, 0) + 1
+
+
+class NgramModel():
+
+    def __init__(self, counter, ngrams):
+
+        self.ngram_counter = counter
+        self.ngrams = ngrams
+
+        self.vocab = set([token[0] for token in self.ngrams if len(token) == 1])
+
+
+    def _markov_assumption(self, word, prev_word) -> float:
+        """P(w1 | w2) = count(W2 w1) / count(W2)"""
+        return self.ngram_counter.token_appearance[(prev_word, word)]/self.ngram_counter.token_appearance[(prev_word,)]
+
+    def calculate_ngram_probability(self, ngram: tuple) -> None:
+
+        if len(ngram) == 1:
+            # If our ngrams are not of size 2 then move on
+            count = self.ngram_counter.token_appearance[ngram]
+            self.uni_prob[ngram] = count/sum(self.ngram_counter.token_appearance.values())
+            return
+
+        start_counts = self.ngram_counter.start_appearances
+        count = self.ngram_counter.token_appearance
+
+        # Markov assumption
+        self.prob[ngram] = self._markov_assumption(ngram[1],ngram[0])
+
+    def train(self) -> None:
+
+        # The probability that each ngram appears on the text
+        self.prob = {}
+        self.uni_prob = {}
+        # The propability that each ngram appears at the start of a sentence
+        self.start_prob = {}
+
+        for ngram in self.ngrams:
+            self.calculate_ngram_probability(ngram)
+
+    def score(self, word, prev_word) -> float:
+        """
+        Given the a bigram of the test set calculate the probability of that bigram happening
+        """
+    
+        # Calculate probability
+        return self.good_turing_smoothing(word, prev_word)
+
+    def _perplexity(self, ngrams) -> float:
+        """
+        This belongs in evaluation and the ngrams used in this are ngrams of the test set.
+        """
+        p = 0
+        for ngram in ngrams:
+            if len(ngram) == 1:
+                continue
+
+            if ngram not in self.prob:
+                self.calculate_ngram_probability(ngram)
+            
+            p += math.log(1/self.prob[ngram])
+
+        p = math.ceil(math.e**(p))
+
+        return math.sqrt(p)
+
+
+    def laplace_smoothing(self, word, prev_word) -> float:
+        v = len(self.vocab)
+
+        bigram = (prev_word, word)
+        unigram = (prev_word,)
+
+        prob_nom = self.ngram_counter.token_appearance.get(bigram, 0) + 1
+        prob_den = self.ngram_counter.token_appearance.get(unigram, 0) + v
+
+        return prob_nom/prob_den
+
+    def good_turing_smoothing(self, word, prev_word) -> float:
+
+        smoothing_constant = 1
+
+        unique_events = 0
+        twice_events = 0
+        total_events = 0
+
+        bigram = (prev_word, word)
+        unigram = (prev_word,)
+
+        for token, value in self.ngram_counter.token_appearance.items():
+
+            if value == 1:
+                unique_events += value
+            if value == 2:
+                twice_events += 1
+
+            total_events += value
+
+        # Calculate discounting factor
+        # disc_factor = (number_unique_events - number_of_events_occurred_twice)/total_events
+        disc_factor = (unique_events - twice_events)/total_events
+
+        lmb = 0.5
+
+        # Calculate probability
+        prob_nom = self.ngram_counter.token_appearance.get(bigram, 0) * disc_factor
+        prob_den = self.ngram_counter.token_appearance.get(unigram, 0) * disc_factor
+
+        if prob_nom == 0 or prob_den == 0:
+            prob_unigram = 0
+            if unigram in self.uni_prob:
+                prob_unigram = self.uni_prob[unigram]
+                
+            return lmb * prob_unigram + (1 - lmb) * 0.02
+        
+        return prob_nom/prob_den
 
 def pad_data(full_text: str) -> list:
     """
@@ -54,49 +192,37 @@ def group_creation(pad_list: list):
     
     return grouped_list
 
-def markov_assumption(ngrams_set: list, ngram: int):
-    pass 
-
-def count(word, prev_word, tokenize_data) -> int:
-    found_prev = False
-    c = 0
-    for token in tokenize_data:
-        if token == prev_word:
-            found_prev = True
-        elif found_prev and toke == word:
-            c += 1
-            found_prev = False
-
-    return c
-
-def sequence_probability(word: str, prev_word: str, bag_words: dict, tokenize_data: list) -> float:
-    return count(word, prev_word, tokenize_data)/bag_words(prev_word)
 
 if __name__ == "__main__": 
 
     # 1.- Preprocess training data
 
-    training_data_path = "text_one.txt"
+    training_data_path = "text_two.txt"
 
     with open(training_data_path, "r") as f:
         train_text = f.read().lower()
     
     training_data = pad_data(train_text)
 
-    print(f"Our padded data: {training_data}")
+    # print(f"Our padded data: {training_data}")
 
     ngrams = group_creation(training_data)
 
-    print(f"N-grams: {ngrams}")
+    # print(f"N-grams: {ngrams}")
 
     # N-Gram number
     N = 2
+
+    # Test our model
+    ngc = NgramCounter(ngrams)
+    ngm = NgramModel(ngc, ngrams)
+    ngm.train()
 
     # Build ngram language models
     model = WittenBellInterpolated(N) 
     model.fit([ngrams], vocabulary_text=training_data)
 
-    test_data_file = "./text_two.txt"
+    test_data_file = "./text_one.txt"
 
     # Read testing data
     with open(test_data_file) as f:
@@ -105,14 +231,19 @@ if __name__ == "__main__":
 
     # Tokenize and pad the text
     testing_data = pad_data(test_text)
-    print(f"Testing data: {testing_data}")
 
     # assign scores
     scores = []
+    our_scores = []
     for i, item in enumerate(testing_data[N-1:]):
         s = model.score(item, testing_data[i:i+N-1])
+        score_custom_model = ngm.score(item, testing_data[i:i+N-1][0])
         print(f"Predictability: {round(s, 2):4} Word: '{item}'")
+        print(f"Our predictability: {round(score_custom_model, 2):4} Word: '{item}'")
+        print("------")
         scores.append(s)
+        our_scores.append(score_custom_model)
 
-    print(f"avg: {sum(scores)/len(scores)}")
+    print(f"avg nltk model: {sum(scores)/len(scores)}")
+    print(f"avg our model: {sum(our_scores)/len(our_scores)}")
 
