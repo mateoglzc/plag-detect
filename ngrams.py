@@ -1,9 +1,9 @@
 import re
 import math
 
-from nltk.util import ngrams, pad_sequence, everygrams
-from nltk.tokenize import word_tokenize
-from nltk.lm import MLE, WittenBellInterpolated
+# from nltk.util import ngrams, pad_sequence, everygrams
+# from nltk.tokenize import word_tokenize
+# from nltk.lm import MLE, WittenBellInterpolated
 
 # import numpy as np
 
@@ -156,27 +156,35 @@ def pad_data(full_text: str) -> list:
     """
     Pad the training data by sentences.
     """
+    # get paragraphs
+    paragraphs = full_text.split("\n")
+    print(f"paragraphs:\n{paragraphs}")
+    #separate paragraphs into sentences
+    # sentences = [sentence.strip(".") for sentence in paragraphs]
+    sentences = []
+    for paragraph in paragraphs:
+        sentencesInParagraph = paragraph.split(". ")
+        # print(sentencesInParagraph)
+        sentences.extend(sentencesInParagraph)
+    # sentences = [sentence.split(". ") for sentence in paragraphs]
+
 
     # Separate text into sentences
     sentences = full_text.split(". ")
-    sentences = [s.strip(".") for s in sentences]
-    sentences = [s.strip("./n") for s in sentences]
-    pad_list = []
-    for i in sentences:
-        pad_list.append("<s>")
-        splitted_sentence = i.split()
-        pad_list.extend(splitted_sentence)
-        pad_list.append("<\s>")
+    
+    # Separate text into sentences
     sentences = full_text.split(". ")
     sentences = [s.strip(".") for s in sentences]
-    sentences = [s.strip("./n") for s in sentences]
+    sentences = [s.replace(",", "") for s in sentences]
+    sentences = [emptyString for emptyString in sentences if emptyString]
+    print(f"sentences: {sentences}")
     pad_list = []
     for i in sentences:
         pad_list.append("<s>")
         splitted_sentence = i.split()
         pad_list.extend(splitted_sentence)
         pad_list.append("<\s>")
-    
+    print(pad_list)
     return pad_list
     
 
