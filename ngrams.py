@@ -1,11 +1,9 @@
 import re
 import math
 
-# from nltk.util import ngrams, pad_sequence, everygrams
-# from nltk.tokenize import word_tokenize
-# from nltk.lm import MLE, WittenBellInterpolated
-
-# import numpy as np
+from nltk.util import ngrams, pad_sequence, everygrams
+from nltk.tokenize import word_tokenize
+from nltk.lm import MLE, WittenBellInterpolated
 
 # N-grams
 
@@ -214,14 +212,12 @@ if __name__ == "__main__":
     
     training_data = pad_data(train_text)
 
-    # print(f"Our padded data: {training_data}")
-
-    ngrams = group_creation(training_data, 4)
-
-    # print(f"N-grams: {ngrams}")
-
     # N-Gram number
     N = 2
+
+    ngrams = group_creation(training_data, N)
+
+    # print(f"N-grams: {ngrams}")
 
     # Test our model
     ngc = NgramCounter(ngrams)
