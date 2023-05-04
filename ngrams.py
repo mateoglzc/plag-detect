@@ -158,46 +158,44 @@ def pad_data(full_text: str) -> list:
     """
     # get paragraphs
     paragraphs = full_text.split("\n")
-    print(f"paragraphs:\n{paragraphs}")
-    #separate paragraphs into sentences
-    # sentences = [sentence.strip(".") for sentence in paragraphs]
+    #print(f"paragraphs:{paragraphs}")
     sentences = []
     for paragraph in paragraphs:
-        sentencesInParagraph = paragraph.split(". ")
-        # print(sentencesInParagraph)
-        sentences.extend(sentencesInParagraph)
-    # sentences = [sentence.split(". ") for sentence in paragraphs]
-
-
-    # Separate text into sentences
-    sentences = full_text.split(". ")
+        paragraphSentences = paragraph.split(". ")
+        sentences = sentences + paragraphSentences
     
-    # Separate text into sentences
-    sentences = full_text.split(". ")
-    sentences = [s.strip(".") for s in sentences]
-    sentences = [s.replace(",", "") for s in sentences]
-    sentences = [emptyString for emptyString in sentences if emptyString]
-    print(f"sentences: {sentences}")
+    sentences = [sentence.replace(".", "") for sentence in sentences]
+    sentences = [sentence.replace(",", "") for sentence in sentences]
+    #print(f"sentence v2: {sentences}")
+
     pad_list = []
-    for i in sentences:
+
+    for sentence in sentences:
         pad_list.append("<s>")
-        splitted_sentence = i.split()
-        pad_list.extend(splitted_sentence)
+        splitted = sentence.split()
+        pad_list.extend(splitted)
         pad_list.append("<\s>")
-    print(pad_list)
+    #print(f"pad_list: {pad_list}")
     return pad_list
     
 
-def group_creation(pad_list: list):
+def group_creation(pad_list: list, n_gram: int):
+    print(range(len(pad_list)))
+    print(f"pad_list: {pad_list}\n")
     grouped_list = []
-    for i in range(len(pad_list)-1):
-        pair = (pad_list[i],)
-        grouped_list.append(pair)
-        pair = (pad_list[i], pad_list[i+1])
-        grouped_list.append(pair)
-    pair = (pad_list[-1],)
-    grouped_list.append(pair)
-    
+    for i in range(len(pad_list)):
+        # print(f"i: {i}")
+        current_group = []
+        j= 0
+        while j < n_gram and i < len(pad_list)-n_gram:
+            #print(f"j: {j}")
+            # print(pad_list[i+j])
+            current_group.append(pad_list[i+j])
+            print(current_group)
+            tuple_to_append = tuple(current_group)
+            grouped_list.append(tuple_to_append)
+            j +=1
+    print(grouped_list)
     return grouped_list
 
 
@@ -214,7 +212,7 @@ if __name__ == "__main__":
 
     # print(f"Our padded data: {training_data}")
 
-    ngrams = group_creation(training_data)
+    ngrams = group_creation(training_data, 4)
 
     # print(f"N-grams: {ngrams}")
 
