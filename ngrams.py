@@ -195,6 +195,10 @@ def group_creation(pad_list: list, n_gram: int):
             tuple_to_append = tuple(current_group)
             grouped_list.append(tuple_to_append)
             j +=1
+    for i in range(len(pad_list)-n_gram, len(pad_list)):
+        for j in range(i, len(pad_list)):
+            grouped_list.append(tuple(pad_list[i:j+1]))
+    
     print(grouped_list)
     return grouped_list
 
