@@ -20,19 +20,20 @@ class NgramCounter():
 
     def count(self) -> None:
 
-        self.tokens = 0
         self.token_appearance = {}
-        self.start_appearances = {}
+        self.unique_tokens = set() # Tokens that have only appeared once
+        self.n_tokens_appereance = {} # Used for good-turing smoothing
 
         for ngram in self.ngrams:
-
-            # Count normal ngrams
             self.token_appearance[ngram] = self.token_appearance.get(ngram, 0) + 1
 
-            # Check if ngram is in start of sentence
-            if ngram[0] == "<s>":
-                self.start_appearances[ngram] = self.start_appearances.get(ngram, 0) + 1
+        self.total_tokens = sum(self.token_appearance.values())
 
+        for token, count in self.token_appearance.items():
+            if count == 1:
+                self.unique_tokens.add(token)
+            
+            self.n_tokens_appereance[count] = self.n_tokens_appereance.get(count, 0) + 1
 
 class NgramModel():
 
@@ -56,7 +57,6 @@ class NgramModel():
             self.uni_prob[ngram] = count/sum(self.ngram_counter.token_appearance.values())
             return
 
-        start_counts = self.ngram_counter.start_appearances
         count = self.ngram_counter.token_appearance
 
         # Markov assumption
@@ -113,33 +113,18 @@ class NgramModel():
 
     def good_turing_smoothing(self, word, prev_word) -> float:
 
-        smoothing_constant = 1
-
-        unique_events = 0
-        twice_events = 0
-        total_events = 0
-
         bigram = (prev_word, word)
         unigram = (prev_word,)
 
-        for token, value in self.ngram_counter.token_appearance.items():
-
-            if value == 1:
-                unique_events += value
-            if value == 2:
-                twice_events += 1
-
-            total_events += value
-
         # Calculate discounting factor
         # disc_factor = (number_unique_events - number_of_events_occurred_twice)/total_events
-        disc_factor = (unique_events - twice_events)/total_events
+        disc_factor = (self.ngram_counter.n_tokens_appereance[1] - self.ngram_counter.n_tokens_appereance[2])/self.ngram_counter.total_tokens
 
         lmb = 0.35
 
         # Calculate probability
         prob_nom = self.ngram_counter.token_appearance.get(bigram, 0) * disc_factor
-        prob_den = self.ngram_counter.token_appearance.get(unigram, 0) * disc_factor
+        prob_den = self.ngram_counter.token_appearance.get(unigram, 0)
 
         if prob_nom == 0 or prob_den == 0:
             prob_unigram = 0
@@ -237,7 +222,6 @@ if __name__ == "__main__":
 
     # Tokenize and pad the text
     testing_data = pad_data(test_text)
-    print(f"Testing data: {testing_data}\n")
 
     # assign scores
     scores = []
