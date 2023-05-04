@@ -1,3 +1,5 @@
+import os
+
 def analyze_text(path: str):
     """
     Given a input path of a .txt file, return a bag of words vector of that given file and the amount of words that file contains.

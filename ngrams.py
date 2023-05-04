@@ -137,7 +137,7 @@ class NgramModel():
         # disc_factor = (number_unique_events - number_of_events_occurred_twice)/total_events
         disc_factor = (unique_events - twice_events)/total_events
 
-        lmb = 0.5
+        lmb = 0.35
 
         # Calculate probability
         prob_nom = self.ngram_counter.token_appearance.get(bigram, 0) * disc_factor
@@ -197,7 +197,7 @@ if __name__ == "__main__":
 
     # 1.- Preprocess training data
 
-    training_data_path = "text_two.txt"
+    training_data_path = "training.txt"
 
     with open(training_data_path, "r") as f:
         train_text = f.read().lower()
@@ -222,7 +222,7 @@ if __name__ == "__main__":
     model = WittenBellInterpolated(N) 
     model.fit([ngrams], vocabulary_text=training_data)
 
-    test_data_file = "./text_one.txt"
+    test_data_file = "suspicious.txt"
 
     # Read testing data
     with open(test_data_file) as f:
@@ -231,6 +231,7 @@ if __name__ == "__main__":
 
     # Tokenize and pad the text
     testing_data = pad_data(test_text)
+    print(f"Testing data: {testing_data}\n")
 
     # assign scores
     scores = []
