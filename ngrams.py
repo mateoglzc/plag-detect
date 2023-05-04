@@ -1,9 +1,9 @@
 import re
 import math
 
-from nltk.util import ngrams, pad_sequence, everygrams
-from nltk.tokenize import word_tokenize
-from nltk.lm import MLE, WittenBellInterpolated
+# from nltk.util import ngrams, pad_sequence, everygrams
+# from nltk.tokenize import word_tokenize
+# from nltk.lm import MLE, WittenBellInterpolated
 
 # import numpy as np
 
@@ -156,40 +156,50 @@ def pad_data(full_text: str) -> list:
     """
     Pad the training data by sentences.
     """
-
-    # Separate text into sentences
-    sentences = full_text.split(". ")
-    sentences = [s.strip(".") for s in sentences]
-    sentences = [s.strip("./n") for s in sentences]
-    pad_list = []
-    for i in sentences:
-        pad_list.append("<s>")
-        splitted_sentence = i.split()
-        pad_list.extend(splitted_sentence)
-        pad_list.append("<\s>")
-    sentences = full_text.split(". ")
-    sentences = [s.strip(".") for s in sentences]
-    sentences = [s.strip("./n") for s in sentences]
-    pad_list = []
-    for i in sentences:
-        pad_list.append("<s>")
-        splitted_sentence = i.split()
-        pad_list.extend(splitted_sentence)
-        pad_list.append("<\s>")
+    # get paragraphs
+    paragraphs = full_text.split("\n")
+    #print(f"paragraphs:{paragraphs}")
+    sentences = []
+    for paragraph in paragraphs:
+        paragraphSentences = paragraph.split(". ")
+        sentences = sentences + paragraphSentences
     
+    sentences = [sentence.replace(".", "") for sentence in sentences]
+    sentences = [sentence.replace(",", "") for sentence in sentences]
+    #print(f"sentence v2: {sentences}")
+
+    pad_list = []
+
+    for sentence in sentences:
+        pad_list.append("<s>")
+        splitted = sentence.split()
+        pad_list.extend(splitted)
+        pad_list.append("<\s>")
+    #print(f"pad_list: {pad_list}")
     return pad_list
     
 
-def group_creation(pad_list: list):
+def group_creation(pad_list: list, n_gram: int):
+    print(range(len(pad_list)))
+    print(f"pad_list: {pad_list}\n")
     grouped_list = []
-    for i in range(len(pad_list)-1):
-        pair = (pad_list[i],)
-        grouped_list.append(pair)
-        pair = (pad_list[i], pad_list[i+1])
-        grouped_list.append(pair)
-    pair = (pad_list[-1],)
-    grouped_list.append(pair)
+    for i in range(len(pad_list)):
+        # print(f"i: {i}")
+        current_group = []
+        j= 0
+        while j < n_gram and i < len(pad_list)-n_gram:
+            #print(f"j: {j}")
+            # print(pad_list[i+j])
+            current_group.append(pad_list[i+j])
+            print(current_group)
+            tuple_to_append = tuple(current_group)
+            grouped_list.append(tuple_to_append)
+            j +=1
+    for i in range(len(pad_list)-n_gram, len(pad_list)):
+        for j in range(i, len(pad_list)):
+            grouped_list.append(tuple(pad_list[i:j+1]))
     
+    print(grouped_list)
     return grouped_list
 
 
@@ -206,7 +216,7 @@ if __name__ == "__main__":
 
     # print(f"Our padded data: {training_data}")
 
-    ngrams = group_creation(training_data)
+    ngrams = group_creation(training_data, 4)
 
     # print(f"N-grams: {ngrams}")
 
