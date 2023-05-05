@@ -149,7 +149,13 @@ def pad_data(full_text: str) -> list:
     
     sentences = [sentence.replace(".", "") for sentence in sentences]
     sentences = [sentence.replace(",", "") for sentence in sentences]
-    #print(f"sentence v2: {sentences}")
+    new_sentences = []
+    for sentence in sentences:
+        pattern = r'"[^"]*"\s*\([^)]*\)'  # matches the format of "quote" (citation)
+        sentece = re.sub(pattern, '', sentence)
+        new_sentences.append(sentece)
+    print(f"sentence v2: {new_sentences}\n")
+    sentences = new_sentences
 
     pad_list = []
 
@@ -158,13 +164,44 @@ def pad_data(full_text: str) -> list:
         splitted = sentence.split()
         pad_list.extend(splitted)
         pad_list.append("<\s>")
-    #print(f"pad_list: {pad_list}")
+    found_quotes = False
+    found_parenthesis = False
+    i = 0
+    for word in pad_list:
+        if '"' in word and found_quotes == False:
+            without_quote = word.replace('"', "")
+            pad_list.pop(i)
+            pad_list.insert(i, without_quote)
+            pad_list.insert(i, "<q>")
+            found_quotes = True
+        elif '"' in word and found_quotes == True:
+            without_quote = word.replace('"', "")
+            pad_list.pop(i)
+            pad_list.insert(i, without_quote)
+            pad_list.insert(i+1, "<\q>")
+            found_quotes = False
+        if '(' in word and found_parenthesis == False:
+            without_quote = word.replace('(', "")
+            pad_list.pop(i)
+            pad_list.insert(i, without_quote)
+            pad_list.insert(i, "<p>")
+            found_parenthesis = True
+        elif ')' in word and found_parenthesis == True:
+            without_quote = word.replace(')', "")
+            pad_list.pop(i)
+            pad_list.insert(i, without_quote)
+            pad_list.insert(i+1, "<\p>")
+            found_parenthesis = False
+
+        i+=1
+        pass
+    print(f"pad_list: {pad_list}")
     return pad_list
     
 
 def group_creation(pad_list: list, n_gram: int):
-    print(range(len(pad_list)))
-    print(f"pad_list: {pad_list}\n")
+    #print(range(len(pad_list)))
+    #print(f"pad_list: {pad_list}\n")
     grouped_list = []
     for i in range(len(pad_list)):
         # print(f"i: {i}")
